@@ -1,0 +1,156 @@
+/**this is wallace tree multiplier for 8-bit integers - signed**/
+
+CHIP WTM8bs {
+    IN x[8], y[8];
+    OUT isoverflow, z[16];
+
+    PARTS:
+
+    //First we genarate the 8 bit products
+
+    And8bw1b(a = x, b = y[0], out[0..6] = p0, out[7] = p07);
+    And8bw1b(a = x, b = y[1], out[0..6] = p1, out[7] = p17);
+    And8bw1b(a = x, b = y[2], out[0..6] = p2, out[7] = p27);
+    And8bw1b(a = x, b = y[3], out[0..6] = p3, out[7] = p37);
+    And8bw1b(a = x, b = y[4], out[0..6] = p4, out[7] = p47);
+    And8bw1b(a = x, b = y[5], out[0..6] = p5, out[7] = p57);
+    And8bw1b(a = x, b = y[6], out[0..6] = p6, out[7] = p67);
+    And8bw1b(a = x, b = y[7], out[0..6] = p7, out[7] = p77);
+
+    /**this is level 0**/
+
+    //we add PP0, PP1, PP2
+
+    LevelAdd(
+
+        p[0..6] = p0,
+        p[7] = p07,
+        p[8] = p07,
+        p[9] = p07,
+        p[10] = p07,
+        p[11] = p07,
+        p[12] = p07,
+        p[13] = p07,
+        p[14] = p07,
+        p[15] = p07,
+
+        q[0] = false,
+        q[1..7] = p1,
+        q[8] = p17,
+        q[9] = p17,
+        q[10] = p17,
+        q[11] = p17,
+        q[12] = p17,
+        q[13] = p17,
+        q[14] = p17,
+        q[15] = p17,
+
+        r[0..1] = false,
+        r[2..8] = p2,
+        r[9] = p27,
+        r[10] = p27,
+        r[11] = p27,
+        r[12] = p27,
+        r[13] = p27,
+        r[14] = p27,
+        r[15] = p27,
+
+        isoverflow = of0,
+
+        c = c10,
+
+        s = s10);
+
+    //we add PP3, PP4, PP5
+
+    LevelAdd(
+
+        p[0..2] = false,
+        p[3..9] = p3,
+        p[10] = p37,
+        p[11] = p37,
+        p[12] = p37,
+        p[13] = p37,
+        p[14] = p37,
+        p[15] = p37,
+
+        q[0..3] = false,
+        q[4..10] = p4,
+        q[11] = p47,
+        q[12] = p47,
+        q[13] = p47,
+        q[14] = p47,
+        q[15] = p47,
+
+        r[0..4] = false,
+        r[5..11] = p5,
+        r[12] = p57,
+        r[13] = p57,
+        r[14] = p57,
+        r[15] = p57,
+
+        isoverflow = of1,
+
+        c = c11,
+
+        s = s11);
+
+
+    //we add PP6, PP7 Xor y[7], and y[7]
+
+    Xor16bw1b(a[0..6] = false, a[7..13] = p7, a[14] = p77, a[15] = p77, b = y[7], out = xorPP7);
+
+    LevelAdd(
+
+        p[0] = y[7],
+        p[1..15] = false,
+
+        q[0..5] = false,
+        q[6..12] = p6,
+        q[13] = p67,
+        q[14] = p67,
+        q[15] = p67,
+
+        r = xorPP7,
+
+        isoverflow = of2,
+
+        c = c12,
+
+        s = s12);
+
+    /*this is level 1**/
+
+    LevelAdd(p = c10, q = s10, r = c11, isoverflow = of3, c = c20, s = s20);
+
+    LevelAdd(p = s11, q = c12, r = s12, isoverflow = of4, c = c21, s = s21);
+
+
+    /**this is level 2**/
+
+    //c20, s20, c21 are added and s21 is sent to next level
+
+    LevelAdd(p = c20, q = s20, r = c21, isoverflow = of5, c = c30, s = s30);
+
+    /**this is level 3**/
+
+    LevelAdd(p = c30, q = s30, r = s21, isoverflow = of6, c = c40, s = s40);
+
+    /**At this level we use 16-bit CLA based adder**/
+
+    CLA4bH16buA(x = c40, y = s40, AS = false, z[0..15] = z1, z[7..15] = overflow);
+
+    //making a duplicate of z1 as z which is output
+
+    Or16(a=z1,b=false,out=z);
+
+    //taking or of each bit of z1 (the output), to check if its 0 or not
+
+    Or16Way(in=z1,out=check0);
+
+   // Now, we check wether there is overflow or not
+
+    checkOverflows(in = overflow, x = x[7], y = y[7],check0 = check0, out = isoverflow);
+
+
+}

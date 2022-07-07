@@ -1,0 +1,58 @@
+/**This chip defines the overflow logic for signed integer multiplication**/
+/** check0 input gives if the output of multiplier is 0 or not which helps in avoiding overflow
+   when operands are 0 and a negative number **/
+
+CHIP checkOverflows {
+    IN in[9], x, y, check0;
+    OUT out;
+
+    PARTS:
+
+    // p_{n-1} + p_{n} + ... p_{2n-1};
+
+    Or(a = in[0], b = in[1], out = o1);
+    Or(a = in[2], b = in[3], out = o2);
+    Or(a = in[4], b = in[5], out = o3);
+    Or(a = in[6], b = in[7], out = o41);
+    Or(a = o41, b = in[8], out = o4);
+    Or(a = o1, b = o2, out = o11);
+    Or(a = o3, b = o4, out = o12);
+    Or(a = o11, b = o12, out = p);
+
+    // com(p_{n-1}) + com(p_{n}) .... com(p_{2n-1}); com means complement
+
+    Not(in = in[0], out = notin0);
+    Not(in = in[1], out = notin1);
+    Not(in = in[2], out = notin2);
+    Not(in = in[3], out = notin3);
+    Not(in = in[4], out = notin4);
+    Not(in = in[5], out = notin5);
+    Not(in = in[6], out = notin6);
+    Not(in = in[7], out = notin7);
+    Not(in = in[8], out = notin8);
+
+    Or(a = notin0, b = notin1, out = no1);
+    Or(a = notin2, b = notin3, out = no2);
+    Or(a = notin4, b = notin5, out = no3);
+    Or(a = notin6, b = notin7, out = no41);
+    Or(a = no41, b = notin8, out = no4);
+    Or(a = no1, b = no2, out = no11);
+    Or(a = no3, b = no4, out = no12);
+    Or(a = no11, b = no12, out = notp);
+
+
+    // x_{n-1} Xor y_{n-1}
+
+    Xor(a = x, b = y, out = xorXY);
+
+    // x_{n-1} exclusive nor y_{n-1};
+
+    Not(in = xorXY, out = xnorXY);
+
+    //this is overflow logic when sign is same or sign is diff
+
+    And(a = p, b = xnorXY, out = t1);
+    And(a = notp, b = xorXY, out = t2);
+    Or(a = t1, b = t2, out = t1t2);
+    And(a=t1t2, b=check0, out=out);
+}

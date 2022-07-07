@@ -1,0 +1,37 @@
+// this chip is used to generate higher order propogate and generate terms
+
+CHIP HPGgenerate {
+    IN x[4],y[4];
+    OUT HP,HG;
+
+    PARTS:
+
+    // creating propogate terms
+
+    Xor(a = x[0], b = y[0], out = p0);
+    Xor(a = x[1], b = y[1], out = p1);
+    Xor(a = x[2], b = y[2], out = p2);
+    Xor(a = x[3], b = y[3], out = p3);
+
+    // creating generate terms
+
+    And(a = x[0], b = y[0], out = g0);
+    And(a = x[1], b = y[1], out = g1);
+    And(a = x[2], b = y[2], out = g2);
+    And(a = x[3], b = y[3], out = g3);
+
+    //generating higher order propogate term as HP = p0.p1.p2.p3 and generate term as HG = p3.p2.p1.g0 + p3.p2.g1 + p3.g2 + g3
+
+    And(a=p0, b=p1, out=p01);
+    And(a=p01, b=p2, out=p012);
+    And(a=p012, b=p3, out=HP);
+    And(a = p1, b = g0, out = g0p1);
+    And(a = p2, b = g0p1, out = g0p12);
+    And(a = p2, b = g1, out = g1p2);
+    And(a = p3, b = g0p12, out = g0p123);
+    And(a = p3, b = g1p2, out = g1p23);
+    And(a = p3, b = g2, out = g2p3);
+    Or(a=g0p123, b=g1p23, out=temp1);
+    Or(a=temp1, b=g2p3, out=temp2);
+    Or(a=temp2, b=g3, out=HG);
+  }
