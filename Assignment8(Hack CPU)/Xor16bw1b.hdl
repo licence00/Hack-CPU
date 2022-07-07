@@ -1,0 +1,12 @@
+CHIP Xor16bw1b {
+    IN a[16], b;
+
+    OUT out[16];
+
+    PARTS:
+
+    Xor4b(a = a[0..3], b[0] = b, b[1] = b, b[2] = b, b[3] = b, out = out[0..3]);
+    Xor4b(a = a[4..7], b[0] = b, b[1] = b, b[2] = b, b[3] = b, out = out[4..7]);
+    Xor4b(a = a[8..11], b[0] = b, b[1] = b, b[2] = b, b[3] = b, out = out[8..11]);
+    Xor4b(a = a[12..15], b[0] = b, b[1] = b, b[2] = b, b[3] = b, out = out[12..15]);
+}

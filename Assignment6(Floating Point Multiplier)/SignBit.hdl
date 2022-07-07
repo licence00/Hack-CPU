@@ -1,0 +1,8 @@
+CHIP SignBit {
+    IN xs, ys;
+    OUT zs;
+
+    PARTS:
+        
+        Xor(a = xs, b = ys, out = zs);
+}

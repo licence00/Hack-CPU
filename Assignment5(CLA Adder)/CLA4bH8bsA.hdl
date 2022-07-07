@@ -1,0 +1,90 @@
+CHIP CLA4bH8bsA {
+    IN x[8], y[8],AS;
+    OUT z[8], isoverflow;
+
+    PARTS:
+
+    //taking xor of y[16] with AS which acts as a control signal for addition(0) or subtraction(1)\
+    // and the outcome y corresponds to its 2's compliment if its subtraction else it remains same
+    Xor(a=y[0], b=AS, out=y0);
+    Xor(a=y[1], b=AS, out=y1);
+    Xor(a=y[2], b=AS, out=y2);
+    Xor(a=y[3], b=AS, out=y3);
+    Xor(a=y[4], b=AS, out=y4);
+    Xor(a=y[5], b=AS, out=y5);
+    Xor(a=y[6], b=AS, out=y6);
+    Xor(a=y[7], b=AS, out=y7);
+
+    //creating the higher order propogating and generate terms
+    HPGgenerate(x=x[0..3],y[0]=y0,y[1]=y1,y[2]=y2,y[3]=y3,HP=HP0,HG=HG0);
+    HPGgenerate(x=x[4..7],y[0]=y4,y[1]=y5,y[2]=y6,y[3]=y7,HP=HP1,HG=HG1);
+
+    //using higer order propogating and generate terms to generate c4 c8 c12 c16 carry bits
+
+    //c4
+    And(a=HP0, b=AS, out=c0HP0);
+    Or(a = c0HP0, b = HG0, out = c4);
+
+    //c8
+    And(a=HP1, b=c0HP0, out=c0HP01);
+    And(a=HP1, b=HG0, out=HP1G0);
+    Or(a = c0HP01, b = HP1G0, out = t1);
+    Or(a = t1, b = HG1, out = c8);
+
+
+    //generating internal carry bits for each c4 ;
+    intCarryGen(x=x[0..3],y[0]=y0,y[1]=y1,y[2]=y2,y[3]=y3,c0=AS,c1=c1,c2=c2,c3=c3);
+    intCarryGen(x=x[4..7],y[0]=y4,y[1]=y5,y[2]=y6,y[3]=y7,c0=c4,c1=c5,c2=c6,c3=c7);
+
+    //generating sum bits using carry bits
+    //z0
+
+    Xor(a = x[0], b = y0, out = x0y0);
+    Xor(a = x0y0, b = AS, out = z[0]);
+
+    //z1
+
+    Xor(a = x[1], b = y1, out = x1y1);
+    Xor(a = x1y1, b = c1, out = z[1]);
+
+    //z2
+
+    Xor(a = x[2], b = y2, out = x2y2);
+    Xor(a = x2y2, b = c2, out = z[2]);
+
+    //z3
+
+    Xor(a = x[3], b = y3, out = x3y3);
+    Xor(a = x3y3, b = c3, out = z[3]);
+
+    //z4
+
+    Xor(a = x[4], b = y4, out = x4y4);
+    Xor(a = x4y4, b = c4, out = z[4]);
+
+    //z5
+
+    Xor(a = x[5], b = y5, out = x5y5);
+    Xor(a = x5y5, b = c5, out = z[5]);
+
+    //z6
+
+    Xor(a = x[6], b = y6, out = x6y6);
+    Xor(a = x6y6, b = c6, out = z[6]);
+
+    //z7
+
+    Xor(a = x[7], b = y7, out = x7y7);
+    Xor(a = x7y7, b = c7, out = s);
+
+    And(a = s, b = s, out = z[7]);
+
+
+    //overflow logic if the x[15], y[15] are same and z[15] is different then it is overflow
+
+    //(x[15] XOR z[15]) AND (y[15] XOR z[15]) == isoverflow
+
+    Xor(a = x[7], b = s, out = comp1);
+    Xor(a = y7, b = s, out = comp2);
+    And(a = comp1, b = comp2, out = isoverflow);
+}

@@ -1,0 +1,12 @@
+CHIP Out
+{
+   IN p[16],q[16],f,no;
+   OUT out[16],zr,ng;
+   PARTS:
+   CLA4bH16buA(x[0..15]=p[0..15],y[0..15]=q[0..15],AS=false,z[0..15]=add);
+   And16bw1b(a[0..15]=p[0..15],b[0..15]=q[0..15],out[0..15]=and);
+   Mux16b2to1(s=f , x0[0..15]=and, x1[0..15]=add, y[0..15]=out1);
+   Xor16bw1b(a[0..15]=out1, b=no, out[0..15]=out[0..15]);
+   Xor16bw1b(a[0..15]=out1, b=no, out[0..15]=out2);
+   StatusBits(x[0..15]=out2, zr=zr, ng=ng);
+}

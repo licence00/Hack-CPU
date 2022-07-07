@@ -1,0 +1,25 @@
+CHIP LevelAdd {
+    IN p[16], q[16], r[16];
+    OUT c[16], s[16], isoverflow;
+
+    PARTS: 
+
+    Not(in = true, out = c[0]);
+    Fulladder(xi = p[0], yi = q[0], ci = r[0], ci1 = c[1], si = s[0]);
+    Fulladder(xi = p[1], yi = q[1], ci = r[1], ci1 = c[2], si = s[1]);
+    Fulladder(xi = p[2], yi = q[2], ci = r[2], ci1 = c[3], si = s[2]);
+    Fulladder(xi = p[3], yi = q[3], ci = r[3], ci1 = c[4]], si = s[3]);
+    Fulladder(xi = p[4], yi = q[4], ci = r[4], ci1 = c[5], si = s[4]);
+    Fulladder(xi = p[5], yi = q[5], ci = r[5], ci1 = c[6], si = s[5]);
+    Fulladder(xi = p[6], yi = q[6], ci = r[6], ci1 = c[7], si = s[6]);
+    Fulladder(xi = p[7], yi = q[7], ci = r[7], ci1 = c[8], si = s[7]);
+    Fulladder(xi = p[8], yi = q[8], ci = r[8], ci1 = c[9], si = s[8]);
+    Fulladder(xi = p[9], yi = q[9], ci = r[9], ci1 = c[10], si = s[9]);
+    Fulladder(xi = p[10], yi = q[10], ci = r[10], ci1 = c[11], si = s[10]);
+    Fulladder(xi = p[11], yi = q[11], ci = r[11], ci1 = c[12], si = s[11]);
+    Fulladder(xi = p[12], yi = q[12], ci = r[12], ci1 = c[13], si = s[12]);
+    Fulladder(xi = p[13], yi = q[13], ci = r[13], ci1 = c[14], si = s[13]);
+    Fulladder(xi = p[14], yi = q[14], ci = r[14], ci1 = c[15], si = s[14]);
+    Fulladder(xi = p[15], yi = q[15], ci = r[15], ci1 = isoverflow, si = s[15]);
+        
+}

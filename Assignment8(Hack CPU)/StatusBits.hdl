@@ -1,0 +1,9 @@
+CHIP StatusBits
+{
+   IN x[16];
+   OUT zr,ng;
+   PARTS:
+   And(a=x[15],b=x[15],out=ng);
+   Or16b(a[0..15]=x[0..15], Or=zr1);
+   Not(in=zr1, out=zr);
+}

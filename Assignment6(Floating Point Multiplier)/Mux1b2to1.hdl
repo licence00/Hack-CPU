@@ -1,0 +1,17 @@
+CHIP Mux1b2to1 {
+  IN s, x0, x1;
+  OUT y;
+
+  PARTS:
+  Not(in = s, out = ns);
+
+  // we know that Y = a1 + a2 
+  // were a1 = S'X0, a2 = SX1
+
+  //get the output for  the first bit
+
+  And(a = ns, b = x0, out = a00);
+  And(a = s, b = x1, out = a10);
+  Or(a = a00, b = a10, out = y);
+
+}

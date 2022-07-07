@@ -1,0 +1,22 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/And8Way.hdl
+
+/**
+ * 8-way And gate: out = in[0] And in[1] And ... And in[7].
+ */
+
+CHIP And8Way {
+    IN in[8];
+    OUT out;
+
+    PARTS:
+  And(a=in[0],b=in[1],out=a);
+	And(a=a,b=in[2],out=b);
+	And(a=b,b=in[3],out=c);
+	And(a=c,b=in[4],out=d);
+	And(a=d,b=in[5],out=e);
+	And(a=e,b=in[6],out=f);
+	And(a=f,b=in[7],out=out);
+}

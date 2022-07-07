@@ -1,0 +1,79 @@
+/**this chip is a floating point multiplier for 16 bits
+
+1bit sign, 8bit exponent and 7bit mantissa **/
+
+
+CHIP FPM {
+    IN x[16], y[16];
+    OUT ifoverflow, z[16];
+
+    PARTS:
+
+        //finding the sign of the multiplied bit
+
+        SignBit(xs = x[15], ys = y[15], zs = z[15]);
+
+        //multiplying the mantissa
+
+        WTM8bu(x[0..6] = x[0..6], x[7] = true, y[0..6] = y[0..6], y[7] = true, z[8..14] = in1, z[7..13] = in2, z[15] = pm);
+
+        //shifting if the mantissa is not in standard form
+
+        Mux8b2to1(x0[0..6] = in2, x0[7] = false, x1[0..6] = in1, x1[7] =false, s = pm, y[0..6] = z[0..6], y[7] = null);
+
+        //adding the exponent bits --- this may exceed the 8b boundary, but since we are subtracting bias later 
+        //we should use 9 bit adder, here we take 12 bit cla adder
+
+        CLA4bH12bsA(x[0..7] = x[7..14], x[8..11] = false, y[0..7] = y[7..14], y[8..11] = false, AS = false, z = e, isoverflow = of1);
+
+        //finding the actual exponent value
+
+        CLA4bH12bsA(
+            x = e,
+            y[0] = true,
+            y[1] = true,
+            y[2] = true,
+            y[3] = true,
+            y[4] = true,
+            y[5] = true,
+            y[6] = true,
+            y[7..11] = false,
+            AS = true,
+            z[0..7] = ge1,
+            z[8] = of2,
+            isoverflow = of11
+        );
+
+        CLA4bH12bsA(
+            x = e,
+            y[0] = false,
+            y[1] = true,
+            y[2] = true,
+            y[3] = true,
+            y[4] = true,
+            y[5] = true,
+            y[6] = true,
+            y[7..11] = false,
+            AS = true,
+            z[0..7] = ge2,
+            z[8] = of3,
+            isoverflow = of12
+        );
+
+        Mux8b2to1(x0 = ge1, x1 = ge2, s = pm, y = exp, y = z[7..14]);
+        Mux1b2to1(x0 = of2, x1 = of3, s = pm, y = ofp); //overflow if the exponent crosses the max value, 255
+        Mux1b2to1(x0 = of11, x1 = of12, s = pm, y = ofn); //overflow if the exponent crosses the min value, 0
+
+        //to check if all the bits in the exponent is zero or one, which is an extreme case, here we will consider it as overflow
+
+        Or8Way(in = exp, out = o1);
+        And8Way(in = exp, out = o2);
+
+        //if all are zero then both and and or will give zero, else both will give 1 
+
+        Xor(a = o1, b = o2, out = nof);
+        Not(in = nof, out = of);
+
+        Or(a = ofp, b = ofn, out = ofsign);
+        Or(a = ofsign, b = of, out = isoverflow);
+}

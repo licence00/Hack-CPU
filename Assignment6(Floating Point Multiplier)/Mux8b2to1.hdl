@@ -1,0 +1,60 @@
+CHIP Mux8b2to1 {
+  IN s, x0[8], x1[8];
+  OUT y[8];
+
+  PARTS:
+  Not(in = s, out = ns);
+
+  // we know that Y = a1 + a2 
+  // were a1 = S'X0, a2 = SX1
+
+  //get the output for  the first bit
+
+  And(a = ns, b = x0[0], out = a00);
+  And(a = s, b = x1[0], out = a10);
+  Or(a = a00, b = a10, out = y[0]);
+
+
+  //for the output for second bit
+
+  And(a = ns, b = x0[1], out = a01);
+  And(a = s, b = x1[1], out = a11);
+  Or(a = a01, b = a11, out = y[1]);
+
+  //for the output for third bit
+
+  And(a = ns, b = x0[2], out = a02);
+  And(a = s, b = x1[2], out = a12);
+  Or(a = a02, b = a12, out = y[2]);
+
+  //for the output for forth bit
+
+  And(a = ns, b = x0[3], out = a03);
+  And(a = s, b = x1[3], out = a13);
+  Or(a = a03, b = a13, out = y[3]);
+
+  //for the output for fifth bit
+
+  And(a = ns, b = x0[4], out = a04);
+  And(a = s, b = x1[4], out = a14);
+  Or(a = a04, b = a14, out = y[4]);
+
+  //for the output for sixth bit
+
+  And(a = ns, b = x0[5], out = a05);
+  And(a = s, b = x1[5], out = a15);
+  Or(a = a05, b = a15, out = y[5]);
+
+  //for the output for seventh bit
+
+  And(a = ns, b = x0[6], out = a06);
+  And(a = s, b = x1[6], out = a16);
+  Or(a = a06, b = a16, out = y[6]);
+
+  //for the output for eighth bit
+
+  And(a = ns, b = x0[7], out = a07);
+  And(a = s, b = x1[7], out = a17);
+  Or(a = a07, b = a17, out = y[7]);
+
+}

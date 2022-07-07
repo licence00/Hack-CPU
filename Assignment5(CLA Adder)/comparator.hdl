@@ -1,0 +1,54 @@
+/* In this CHIP we compare the every bit of x with every bit of y
+   and inform 1 if same else 0 if different
+*/
+
+//since  each bit is compared, so we use XOR gate
+// BY XOR gate we get 0 if same or 1 if different
+
+
+
+CHIP comparator {
+
+    IN x0,x1,x2,x3,x4,x5,x6,x7,y0,y1,y2,y3,y4,y5,y6,y7;
+    OUT z;
+
+    PARTS:
+
+    // BY XOR gate, we get 0 if same or 1 if different
+    // Then we apply not gate to get 1 if same and 0 if different
+
+    Xor(a=x0, b=y0, out=a1);
+    Not(in=a1, out=na1); 
+
+    Xor(a=x1, b=y1, out=a2);
+    Not(in=a2, out=na2);
+
+    Xor(a=x2, b=y2, out=a3);
+    Not(in=a3, out=na3);
+
+    Xor(a=x3, b=y3, out=a4);
+    Not(in=a4, out=na4);
+
+    Xor(a=x4, b=y4, out=a5);
+    Not(in=a5, out=na5);
+
+    Xor(a=x5, b=y5, out=a6);
+    Not(in=a6, out=na6);
+
+    Xor(a=x6, b=y6, out=a7);
+    Not(in=a7, out=na7);
+
+    Xor(a=x7, b=y7, out=a8);
+    Not(in=a8, out=na8);
+
+    //The final output will be 1 if all the ouputs are 1, else 0
+    //So we use and gate, Y = a1'a2'a3'a4'a5'a6'a7'a8'
+
+    And(a=na1, b=na2, out=na1na2);
+    And(a=na1na2, b=na3, out=na1na2na3);
+    And(a=na1na2na3, b=na4, out=z1);
+    And(a=z1, b=na5, out=z2);
+    And(a=z2, b=na6, out=z3);
+    And(a=z3, b=na7, out=z4);
+    And(a=z4, b=na8, out=z);
+}

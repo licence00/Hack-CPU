@@ -1,0 +1,121 @@
+CHIP ALU {
+    IN c[3], sign, x[8], y[8];
+    OUT OF, EQ, z[8];
+
+    PARTS:
+
+    //first we calculate all different outputs
+
+    //AND
+
+    And8b(x = x, y = y, z = and8b);
+
+    //Or
+
+    Or8b(x = x, y = y, z = or8b);
+
+    //Xor
+
+    Xor8b(x = x, y = y, z = xor8b);
+
+    //ADD
+
+    //we have to different overflow logic for signed and unsigned 
+
+    //sign = 0, means unsigned and 1 means signed
+
+    CLA4bH8buA(x = x, y = y, AS = false, z = addu8b, isoverflow = ofaddu);
+
+    CLA4bH8bsA(x = x, y = y, AS = false, z = adds8b, isoverflow = ofadds);
+
+    //the add opcode will contain result acc . to following logic
+
+    // add8b = sign' * addu8b + sign * adds8b
+
+    Not(in = sign, out = notsign);
+
+    And8bw1b(b = notsign, a = addu8b, out = add8b1);
+    And8bw1b(b = sign, a = adds8b, out = add8b2);
+    Or8b(x = add8b1, y = add8b2, z = add8b);
+
+    //overflow should also follow the same logic
+
+    And(a = notsign, b = ofaddu, out = ofadd0);
+    And(a = sign, b = ofadds, out = ofadd1);
+    Or(a = ofadd0, b = ofadd1, out = ofadd);
+
+    //SUB - it has the same logic as add
+
+    CLA4bH8buA(x = x, y = y, AS = true, z = subu8b, isoverflow = ofsubu);
+
+    CLA4bH8bsA(x = x, y = y, AS = true, z = subs8b, isoverflow = ofsubs);
+
+    And8bw1b(b = notsign, a = subu8b, out = sub8b1);
+    And8bw1b(b = sign, a = subs8b, out = sub8b2);
+    Or8b(x = sub8b1, y = sub8b2, z = sub8b);
+
+    //overflow should also follow the same logic
+
+    And(a = notsign, b = ofsubu, out = ofsub0);
+    And(a = sign, b = ofsubs, out = ofsub1);
+    Or(a = ofsub0, b = ofsub1, out = ofsub);
+
+    //MUL for unsigned
+
+    WTM8bu(x = x, y = y, z = mulu8b, isoverflow = ofmulu);
+
+    //MUL for signed
+
+    WTM8bs(x = x, y = y, z[0..7] = muls8b, isoverflow = ofmuls);
+
+    //Now the output are determined
+
+    //EQ = 1, if x == y else 0
+
+    comparator(
+        x0 = x[0],
+        x1 = x[1],
+        x2 = x[2],
+        x3 = x[3],
+        x4 = x[4],
+        x5 = x[5],
+        x6 = x[6],
+        x7 = x[7],
+        y0 = y[0],
+        y1 = y[1],
+        y2 = y[2],
+        y3 = y[3],
+        y4 = y[4],
+        y5 = y[5],
+        y6 = y[6],
+        y7 = y[7],
+        z = EQ
+    );
+
+    //now z is calculated using multiplexor
+
+    Mux8b4to1(s[0..1] = c[0..1], x0 = false, x1 = and8b, x2 = or8b, x3 = xor8b, y = z0);
+    Mux8b4to1(s[0..1] = c[0..1], x0 = add8b, x1 = sub8b, x2 = mulu8b, x3 = muls8b, y = z1);
+    Mux8b2to1(s = c[2], x0 = z0, x1 = z1, y = z);
+
+    //overflow should also be calculated using multiplexor
+
+    Mux8b4to1(s[0..1] = c[0..1], x0 = false, x1 = false, x2 = false, x3 = false, y = of0);
+
+    Mux8b4to1(
+        s[0..1] = c[0..1], 
+        x0[0] = ofadd, 
+        x0[1..7] = false, 
+        x1[0] = ofsub, 
+        x1[1..7] = false, 
+        x2[0] = ofmulu, 
+        x2[1..7] = false,
+        x3[0] = ofmuls, 
+        x3[1..7] = false,
+        y = of1
+    );
+
+    Mux8b2to1(s = c[2], x0 = of0, x1 = of1, y[0] = OF);
+
+
+}

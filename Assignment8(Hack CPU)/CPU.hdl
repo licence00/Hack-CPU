@@ -1,0 +1,94 @@
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+
+    // i  _  _  a  c1 c2 c3 c4 c5 c6 d1 d2 d3 j1 j2 j3
+    // 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+
+    // A instruction
+    
+    Not(in=instruction[15], out=notI15);
+    Mux16b2to1(x0=aluOut, x1=instruction, s=notI15, y=entryMuxOut1);
+
+    Or(a=notI15, b=instruction[5], out=intoA);
+    ARegister(in=entryMuxOut1, load=intoA, out=A, out[0..14]=addressM);
+
+    // C instruction
+    
+    // ALU takes input from DRegister and from ARegister or inM
+
+    And(a=instruction[15], b=instruction[12], out=AMSwitch);
+    Mux16b2to1(x0=A, x1=inM, s=AMSwitch, y=AM);
+
+    And(a=instruction[15], b=instruction[4], out=intoD);
+    DRegister(in=aluOut,load=intoD, out=D);
+
+    HackALU(x=D, y=AM,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+
+        zr=zrOut,
+        ng=ngOut,
+        z=aluOut, z=outM
+    );
+
+    // writeM uses 3rd destination load bit. for writing in the memory
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // Program counter.
+    
+    Not(in=ngOut, out=nng);
+    Not(in=zrOut, out=nzr);
+    Not(in=instruction[1], out=notI1);
+    Not(in=instruction[2], out=notI2);
+    Not(in=instruction[0], out=notI0);
+
+
+    //jmp
+
+    And(a=instruction[15], b=instruction[0], out=jm1); 
+    And(a=instruction[1], b=instruction[2], out = jm2);
+    And(a=jm1, b=jm2, out=jmp);
+
+    //jgt
+
+    And(a=instruction[15], b=instruction[0], out=jg1); 
+    And(a=notI1, b=notI2, out = jg2);
+    And(a=jg2, b=jg1, out = jg3);
+    And(a=nng, b=nzr, out=nngzr);
+    And(a=jg3, b=nngzr, out=jgt);
+
+    //jeq
+
+    And(a=instruction[15], b=instruction[1], out=je1); 
+    And(a=notI0, b=notI2, out=je2);
+    And(a=je1, b=je2, out=je3);
+    And(a=je3, b=zrOut, out=jeq);
+
+    //jlt
+
+    And(a=instruction[15], b=instruction[2], out=jl1);
+    And(a=notI0, b=notI1, out=jl2);
+    And(a=jl1, b=jl2, out=jl3);
+    And(a=jl3, b=ngOut, out=jlt);
+    
+    Or(a=jmp, b=jgt, out=jmpgt);
+    Or(a=jeq, b=jlt, out=jeqlt);
+    Or(a=jmpgt, b=jeqlt, out=ld);
+
+    PC(in=A, load=ld, inc=true, reset=reset, out[0..14]=pc);
+}
