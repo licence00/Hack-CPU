@@ -1,0 +1,64 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger this pipeline on pushes to the 'main' branch
+  pull_request:
+    branches:
+      - main  # Trigger this pipeline on pull requests to the 'main' branch
+
+jobs:
+  move_checking:
+    runs-on: ubuntu-latest  # Specifies that the job will run on an Ubuntu runner
+
+    steps:
+      # Checkout code from the main repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: true  # Initialize and update submodules
+
+      # Ensure submodule content is available
+      - name: Initialize and update submodules
+        run: git submodule update --init --recursive  # Make sure submodules are updated
+
+      # Create temp directory and move file from submodule
+      - name: Create temp directory and move file
+        run: |
+          mkdir -p ${GITHUB_WORKSPACE}/temp
+          echo "Listing files in ${GITHUB_WORKSPACE}/Assignment4/FeedBack-Form"
+          ls -al ${GITHUB_WORKSPACE}/Assignment4/FeedBack-Form
+          mv ${GITHUB_WORKSPACE}/Assignment4/FeedBack-Form/microexpr2_20231003145140.jj .
+          ls -al ${GITHUB_WORKSPACE}
+
+      # Rename the file after moving it
+      - name: Rename file
+        run: mv ${GITHUB_WORKSPACE}/microexpr2_20231003145140.jj ${GITHUB_WORKSPACE}/sai.jj
+
+  build:
+    runs-on: ubuntu-latest  # Another job to build the project
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Checkout the repository code
+
+      - name: Run build steps
+        run: |
+          echo "Running build steps"
+          # Add your build commands here, for example:
+          # npm install
+          # npm run build
+
+  upload:
+    runs-on: ubuntu-latest  # Another job to handle file upload
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Checkout the repository code
+
+      - name: Upload files
+        run: |
+          echo "Uploading files"
+          # Add commands here to upload your files, for example:
+          # curl -X POST -F "file=@sai.jj" https://your-upload-endpoint.com
